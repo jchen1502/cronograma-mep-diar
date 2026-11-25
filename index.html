@@ -1,0 +1,567 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DIAR · Cronograma maestro MEP</title><style>
+:root{
+  --bg:#F8F6F0; --surface:#FDFCF8; --ink:#0F2342; --muted:#5A6479; --faint:#8A92A4;
+  --line:#E4E0D6; --grid:#EFECE4; --band:#E5F4F3; --accent:#1F8F89; --accent-soft:#53C3BD;
+  --today:#D1453B; --tip-bg:#0F2342; --tip-ink:#F3F6FA; --shadow:0 1px 2px rgba(15,35,66,.06),0 4px 16px rgba(15,35,66,.05);
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"IBM Plex Sans Condensed","Arial Narrow","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;margin:0}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:28px 48px;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+h1{font-size:clamp(22px,2.6vw,30px);line-height:1.15;margin:0;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.src{font-size:12.5px;color:var(--muted);margin:6px 0 0;max-width:70ch}
+.stats{display:flex;gap:20px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;min-width:84px}
+.stat b{font-family:var(--mono);font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.filters{padding:14px 16px;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
+.filters .field{flex:0 0 auto;max-width:100%}
+.filters .field.grow{flex:1 1 240px;max-width:360px}
+.seg{max-width:100%;overflow-x:auto}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field>label,.field>.lab{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500}
+select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 30px 7px 10px;width:100%;max-width:100%;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+select#esp{font-weight:600}
+.ms{position:relative}
+.ms-btn{font:inherit;font-weight:600;text-align:left;cursor:pointer;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 30px 7px 10px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.ms-pop{position:absolute;z-index:15;top:calc(100% + 4px);left:0;min-width:100%;width:max-content;max-width:min(420px,calc(100vw - 32px));max-height:360px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(15,35,66,.14);padding:6px}
+.ms-pop label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;font-size:13.5px}
+.ms-pop label:hover{background:var(--bg)}
+.ms-pop label.all{font-weight:600;border-bottom:1px solid var(--line);border-radius:5px 5px 0 0;margin-bottom:4px}
+.ms-pop input{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.ms-pop .n{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--bg)}
+.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:6px 11px;cursor:pointer;border-right:1px solid var(--line);white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+button:focus-visible,select:focus-visible,.chip:focus-visible,g.m:focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px}
+.seg.types button{display:inline-flex;align-items:center;gap:6px}
+.seg.types svg{flex:none}
+
+.pk{padding:12px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.pk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pk-head .lab{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.pk-head .acts{display:flex;gap:6px}
+.lnk{font:inherit;font-size:12.5px;background:none;border:0;color:var(--accent);cursor:pointer;padding:2px 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow:auto}
+.chip{font-family:var(--cond);font-size:13px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 7px;background:var(--bg);color:var(--ink);cursor:pointer;max-width:100%;text-align:left}
+.chip .sw{width:11px;height:11px;border-radius:50%;flex:none;border:2px solid var(--c)}
+.chip[aria-pressed="true"] .sw{background:var(--c)}
+.chip[aria-pressed="false"]{color:var(--faint)}
+.chip span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted);padding:10px 16px;border-bottom:1px solid var(--line);align-items:center}
+.legend i{display:inline-flex;align-items:center;gap:6px;font-style:normal}
+.legend .sp{flex:1}
+
+.tl{display:grid;grid-template-columns:var(--lw,260px) 1fr;position:relative}
+@media (max-width:640px){.tl{--lw:128px}}
+.labels{border-right:1px solid var(--line);background:var(--surface);z-index:1;border-radius:0 0 0 10px}
+.labels .ax{height:var(--axh);border-bottom:1px solid var(--line)}
+.lr{display:flex;align-items:center;gap:8px;padding:0 12px;font-family:var(--cond);font-size:13px;white-space:nowrap;overflow:hidden;border-bottom:1px solid var(--grid)}
+.lr .sw{width:9px;height:9px;border-radius:50%;flex:none}
+.lr .t{overflow:hidden;text-overflow:ellipsis}
+.lr.g{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--band);font-weight:500;border-bottom-color:var(--line)}
+.lr.g .n{color:var(--muted);margin-left:auto}
+.lr.pkg{cursor:default}
+.lr.pkg.dim{opacity:.35}
+.lr .esp{color:var(--faint);font-size:11.5px}
+.scroll{overflow-x:auto;overflow-y:hidden;min-width:0}
+.tlbar{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.tlbar .sp{flex:1}
+.tlbar .hint{font-size:11.5px;color:var(--faint)}
+.tlv{overflow:auto;max-height:min(78vh,1100px);position:relative;overscroll-behavior:contain;cursor:grab;border-radius:0 0 10px 10px}
+.tlv.drag{cursor:grabbing;user-select:none}
+.tlv .tlg{position:relative;display:grid;grid-template-columns:var(--lw,260px) max-content;width:max-content;min-width:100%}
+@media (max-width:640px){.tlv .tlg{--lw:128px}}
+.tlv .corner{position:sticky;top:0;left:0;z-index:6;background:var(--surface);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tlv .axis{position:sticky;top:0;z-index:5;background:var(--surface);line-height:0}
+.tlv .labels{position:sticky;left:0;z-index:4;border-radius:0}
+.tlv .body{line-height:0}
+.lr.e{cursor:pointer;font-weight:600;background:color-mix(in srgb,var(--band) 35%,var(--surface));gap:6px}
+.lr.e:hover{background:var(--band)}
+.lr.e .car{display:inline-block;width:12px;flex:none;color:var(--muted);transition:transform .15s;font-size:10px}
+.lr.e[aria-expanded="true"] .car{transform:rotate(90deg)}
+.lr.e .n{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted)}
+.lr.pkg.in{padding-left:30px}
+.chart g.sum{cursor:pointer}
+.gl{position:absolute;top:0;bottom:0;width:0;z-index:3;display:none}
+.gl.on{display:block}
+.gl .ln{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--accent)}
+.gl.m .ln{background:var(--ink);opacity:.55;width:0;border-left:2px dashed var(--ink)}
+.gl .gh{position:absolute;transform:translateX(-50%);z-index:1;font-family:var(--mono);font-size:11px;line-height:1;white-space:nowrap;background:var(--accent);color:#fff;border:0;border-radius:5px;padding:4px 7px;cursor:ew-resize;box-shadow:0 2px 6px rgba(15,35,66,.25);touch-action:none}
+.gl.m .gh{background:var(--ink);cursor:default}
+.gl .gh b{font-weight:600;margin-right:5px}
+.gband{position:absolute;top:0;bottom:0;z-index:1;background:var(--accent);opacity:.07;display:none;pointer-events:none}
+.gband.on{display:block}
+.meas{font-family:var(--mono);font-size:11.5px;color:var(--ink);white-space:nowrap}
+.meas b{color:var(--accent)}
+.tlbar button[aria-pressed="true"]{background:var(--accent);color:#fff;border-radius:5px;padding:2px 8px}
+.chart.dim g.sum{opacity:.3}
+svg.chart{display:block}
+.chart text{font-family:var(--mono);fill:var(--muted)}
+.chart .mt{font-size:10.5px}
+.chart .yr{font-size:11px;fill:var(--ink);font-weight:500}
+.chart .ml{font-size:9.5px;fill:var(--muted)}
+.chart g.m{cursor:pointer;transition:opacity .15s}
+.chart.dim g.m:not(.hot),.chart.dim line.cx:not(.hot){opacity:.14}
+.chart.dim g.m.hot .ml{fill:var(--ink);font-weight:500}
+.chart .ml{pointer-events:none}
+.chart g.m.s .ml{opacity:0;font-size:10px}
+.chart.dim g.m.s.hot .ml{opacity:1;fill:var(--ink);font-weight:500}
+.chart polyline.cx{opacity:0;fill:none;pointer-events:none}
+.chart.dim polyline.cx.hot{opacity:.9}
+.chart.dim g.m.hot{opacity:1}
+.chart .cnt{font-size:9.5px;fill:var(--muted)}
+.chart.dim .cnt{opacity:.2}
+.chart .base{stroke:var(--faint);stroke-width:1.2}
+.pinhint{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}
+
+.tip{position:fixed;z-index:20;pointer-events:none;background:var(--tip-bg);color:var(--tip-ink);border-radius:8px;padding:9px 11px;font-size:12.5px;line-height:1.4;max-width:300px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.tip .k{font-family:var(--cond);font-size:12px;opacity:.75}
+.tip .d{font-family:var(--mono);font-size:13px;margin-top:3px}
+.tip .h{display:flex;align-items:center;gap:6px;font-weight:600;margin-bottom:2px}
+.tip .h i{width:9px;height:9px;border-radius:50%;flex:none}
+
+.tbl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:14px 16px 8px;flex-wrap:wrap}
+.tbl-head h2{font-size:15px;margin:0;font-weight:600}
+.tbl-head p{margin:0;font-size:12.5px;color:var(--muted)}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--grid);text-align:left;white-space:nowrap}
+thead th{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0}
+thead tr.grp th{text-align:center;border-bottom:0;padding-bottom:0;color:var(--accent)}
+td.d{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12.5px}
+td.d.na{color:var(--faint)}
+td.p{font-family:var(--cond);white-space:normal;min-width:220px;max-width:380px}
+td.p span{display:inline-flex;gap:7px;align-items:baseline}
+td.p i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;transform:translateY(-1px)}
+td.r{font-family:var(--mono);font-size:12px;color:var(--muted)}
+th.sep,td.sep{border-left:1px solid var(--line)}
+tbody tr:hover td{background:var(--band)}
+
+.notes{font-size:12.5px;color:var(--muted);display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px 28px;padding:4px 2px}
+.notes p{margin:0;max-width:65ch}
+.notes b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{.filters,.pk{display:none}.panel{box-shadow:none}.scroll{overflow:visible}}
+
+/* ---------- comparador de estado ---------- */
+.cmp-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:14px 16px 4px;flex-wrap:wrap}
+.cmp-head h2{font-size:15px;margin:0;font-weight:600}
+.cmp-head p{margin:0;font-size:12.5px;color:var(--muted)}
+.cmp-form{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.6fr);gap:12px 16px;padding:10px 16px 14px;align-items:start}
+@media (max-width:900px){.cmp-form{grid-template-columns:1fr}}
+.cmp-form .field input[type=text],.cmp-form .field input[type=date],.cmp-form select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 10px;width:100%}
+.cmp-form select{padding-right:30px}
+.cbx{position:relative}
+.cbx-list{position:absolute;z-index:16;top:calc(100% + 3px);left:0;right:0;max-height:300px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(15,35,66,.14);padding:4px}
+.cbx-list button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;font:inherit;font-size:13px;background:none;border:0;border-radius:5px;padding:6px 8px;cursor:pointer;color:var(--ink)}
+.cbx-list button:hover,.cbx-list button.act{background:var(--band)}
+.cbx-list small{color:var(--muted);font-size:11.5px}
+.cbx-list .none{padding:8px;color:var(--muted);font-size:12.5px}
+.cbx-list .all{flex-direction:row;color:var(--accent);font-weight:600;border-bottom:1px solid var(--line);border-radius:5px 5px 0 0;margin-bottom:3px}
+.sel-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.sel-chips .sc{display:inline-flex;align-items:center;gap:6px;font-family:var(--cond);font-size:12.5px;background:var(--band);border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 9px;max-width:100%}
+.sel-chips .sc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sel-chips .sc button{font:inherit;border:0;background:none;cursor:pointer;color:var(--muted);padding:0 4px;font-size:14px;line-height:1}
+.ref-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ref-row label{font-size:12.5px;color:var(--muted);display:inline-flex;gap:5px;align-items:center}
+.cmp-sum{margin:0 16px 10px;padding:10px 12px;border-radius:8px;background:var(--band);font-size:13.5px;line-height:1.5}
+.cmp-sum b{font-weight:600}
+.cmp-acts{display:flex;gap:12px;align-items:center;padding:0 16px 10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.st i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.st.pre{background:#EEF0F4;color:#5A6479}.st.prod{background:#E3EDFB;color:#2459B8}.st.env{background:#FFF1D6;color:#9A6200}
+.st.rev{background:#EFE8FB;color:#6A3FC1}.st.sub{background:#FDE7DC;color:#B4471C}.st.fin{background:#E1F3EA;color:#1E7A4D}
+#cmpTbl td.det{white-space:normal;min-width:260px;color:var(--muted);font-size:12.5px}
+#cmpTbl td.bar{min-width:220px;width:30%}
+#cmpTbl tr.ref td{background:#F3FAF9}
+#cmpTbl tr.ref td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.cmp-empty{padding:18px 16px;color:var(--muted);font-size:13px}
+
+:root{--r3:#267EAD;--r4:#218B78;--rev:#D9A64C;--ext:#7856A5;--limit:#B54747} .wrap{max-width:1600px} .stats{gap:17px}.stat b{font-size:22px}.stat{min-width:76px}.subtle{color:var(--muted);font-size:12px}.filters{align-items:end} input,button{font:inherit} input[type=search],input[type=date]{color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 10px;min-width:0;width:100%} .button{font:inherit;cursor:pointer;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;white-space:nowrap}.button:hover{background:var(--band)} .button.active{background:var(--ink);color:white}.filters .field.grow{max-width:400px}.legend .swatch{width:22px;height:10px;border-radius:3px;display:inline-block}.diamond{width:9px;height:9px;display:inline-block;transform:rotate(45deg);background:var(--ext)} .linekey{display:inline-block;height:15px;border-left:2px dashed var(--limit)} .timeline{overflow:auto;max-height:74vh;position:relative;overscroll-behavior:contain;isolation:isolate;--lw:365px}.timeline-inner{width:max-content;min-width:100%;position:relative}.trow{display:flex;min-height:36px}.trow.group{min-height:30px}.trow.head{position:sticky;top:0;z-index:10;height:61px;background:var(--surface)}.tlabel{position:sticky;left:0;z-index:3;width:var(--lw);flex:none;background:var(--surface);border-right:1px solid var(--line);border-bottom:1px solid var(--grid);display:flex;align-items:center;gap:7px;padding:5px 11px;line-height:1.18}.head .tlabel{z-index:12;align-items:center;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}.group .tlabel,.group .track{background:var(--band);border-bottom:1px solid var(--line);color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:.035em;text-transform:uppercase}.group .tlabel button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;text-align:left;padding:0;flex:1}.group .tlabel small{margin-left:auto}.tlabel .id{font:10px var(--mono);color:var(--faint);width:35px;flex:none}.tlabel .name{font-family:var(--cond);font-size:13px;flex:1;min-width:0;overflow-wrap:anywhere}.phase{font:11px var(--mono);font-weight:600;border-radius:4px;padding:3px 5px;flex:none}.phase.R3{background:#E0EDF5;color:#226A95}.phase.R4{background:#DDF0E9;color:#1A705F}.warn{font-size:12px;color:#A86518;flex:none}.track{position:relative;flex:none;width:var(--tw);border-bottom:1px solid var(--grid);min-height:36px;background-color:var(--surface)}.group .track{min-height:30px}.axisTrack{height:61px;overflow:hidden}.month,.tick{position:absolute;overflow:hidden;white-space:nowrap;font:11px var(--mono);padding:7px 5px;border-left:1px solid var(--line);color:var(--ink);height:30px}.month{top:0;background:#F0EEE7;font-weight:600}.tick{top:30px;color:var(--muted);font-size:10px;border-top:1px solid var(--line)} .bar{position:absolute;top:50%;transform:translateY(-50%);height:18px;border:0;border-radius:4px;cursor:pointer;color:white;font:10px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:clip;padding:0 5px;text-align:left;z-index:2}.bar.r3{background:var(--r3)}.bar.r4{background:var(--r4)}.bar.review{background:repeating-linear-gradient(135deg,#F0D79F,#F0D79F 5px,#E9C780 5px,#E9C780 9px);color:#79541D;border:1px solid #D7B267}.mark{position:absolute;z-index:4;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:10px;height:10px;padding:0;border:1px solid white;background:var(--ext);cursor:pointer;box-shadow:0 0 0 1px #7856a555}.mark.delivery{background:#0F2342;width:8px;height:8px}.mark.close{background:#718396;width:8px;height:8px}.date-line{position:absolute;top:0;bottom:0;width:0;border-left:1.5px dashed var(--limit);z-index:1;pointer-events:none}.date-line.today{border-color:var(--accent);border-left-style:solid}.date-line.pin{border-left:2px solid var(--ink);z-index:5}.date-line.measureA,.date-line.measureB{border-left:2px solid #7856A5;z-index:5}.axisTrack .date-line{z-index:3}.date-line span{font:10px var(--mono);position:absolute;top:2px;right:3px;white-space:nowrap;color:var(--limit);background:var(--surface);padding:2px}.date-line.today span{color:var(--accent)}.date-line.pin span{color:var(--ink)}.date-line.measureA span,.date-line.measureB span{color:var(--ext)} .nodate{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A86518;font-size:12px;font-style:italic}.trow:hover:not(.group):not(.head) .tlabel{background:#F3F7F5}.timeline.drag{cursor:grabbing;user-select:none}.track .gridline{position:absolute;top:0;bottom:0;border-left:1px solid var(--grid);pointer-events:none}.track .gridline.major{border-color:var(--line)} .tip{max-width:380px;white-space:normal}.tip b{display:block;margin-bottom:4px}.tip div{margin:2px 0}.tag{font-size:11px;display:inline-block;border-radius:4px;padding:3px 6px;background:#EEF0F4;color:var(--muted);white-space:nowrap}.tag.attn{background:#FFF0D8;color:#875514}.tag.good{background:#E3F2E9;color:#22744A}.tag.late{background:#FCE1E1;color:#A52626;border:1px solid #E5A0A0}.hit-date{min-width:145px}.tag.plan{background:#E1EDF8;color:#226A95}.tag.rev{background:#FAEBD0;color:#835B20}.tbl-wrap{max-height:480px;overflow:auto}.tbl-wrap th{z-index:1}.tbl-wrap td{vertical-align:top}.tbl-wrap td.note{white-space:normal;min-width:240px;max-width:420px}.tbl-wrap td.p{min-width:240px}.hit-edit{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:150px;width:100%}.hit-date{min-width:145px}.hit-actions{display:flex;gap:6px;align-items:center}.hit-add{margin-left:auto}.hit-note{font-size:11.5px;color:var(--muted);margin:0 16px 10px}.cmp-form{grid-template-columns:1fr 1fr 1fr}.cmp-form .field{max-width:none}.cmp-sum{margin-top:2px}.mini{height:7px;border-radius:10px;background:#E8E5DD;overflow:hidden;min-width:70px;margin-top:6px}.mini b{height:100%;display:block;background:var(--accent)} .notes{padding-bottom:8px}.measurebox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.measurebox input{width:137px}.measurebox[hidden]{display:none}.tlbar{gap:8px}.tlbar .sp{flex:1}.selected{font:12px var(--mono);color:var(--accent)} @media(max-width:760px){.timeline{--lw:205px}.tlabel{padding:5px 6px;gap:4px}.tlabel .id{width:29px;font-size:9px}.tlabel .name{font-size:12px}.cmp-form{grid-template-columns:1fr}.stats{gap:12px}.wrap{padding:16px 10px}.filters .field{flex:1 1 130px}.bar{font-size:9px}} @media print{.timeline{max-height:none;overflow:visible;--lw:250px}.wrap{max-width:none}.tlbar,.filters,.pk,.cmp-form,.button{display:none!important}.tbl-wrap{max-height:none}.panel{break-inside:avoid}}
+
+/* Ajuste visual exclusivo de las barras del Gantt: tonos suaves y acabado delicado */
+:root{
+  --r3:#A9C9DC;
+  --r4:#A9D2C4;
+  --rev:#E8D5A8;
+}
+.bar{
+  height:16px;
+  border:1px solid rgba(74,91,108,.12);
+  border-radius:999px;
+  padding:0 7px;
+  font:500 9.5px var(--mono);
+  letter-spacing:.01em;
+  box-shadow:0 1px 2px rgba(35,55,75,.10);
+  transition:filter .15s ease, box-shadow .15s ease, height .15s ease;
+}
+.bar.r3{
+  background:linear-gradient(180deg,#C5DCE9 0%,#A9C9DC 100%);
+  color:#31566D;
+  border-color:#A6C5D7;
+}
+.bar.r4{
+  background:linear-gradient(180deg,#C8E2D8 0%,#A9D2C4 100%);
+  color:#315F52;
+  border-color:#A5CDBE;
+}
+.bar.review{
+  background:repeating-linear-gradient(135deg,#F4E8C9 0,#F4E8C9 6px,#EEDDB5 6px,#EEDDB5 11px);
+  color:#80652F;
+  border:1px solid #E3D0A5;
+}
+.bar:hover{
+  filter:saturate(1.08) brightness(.99);
+  box-shadow:0 2px 5px rgba(35,55,75,.16);
+  height:18px;
+}
+
+
+/* Barras finas y codificación cromática por especialidad */
+.bar{
+  height:10px;
+  min-height:10px;
+  border-radius:999px;
+  padding:0 5px;
+  font:500 8px var(--mono);
+  letter-spacing:0;
+  box-shadow:0 1px 2px rgba(35,55,75,.09);
+  border-width:1px;
+  transition:filter .15s ease, box-shadow .15s ease;
+}
+/* Instalaciones eléctricas: azul */
+.bar.esp0.r3{background:#DCEAF2;color:#45677C;border-color:#C4D9E5}
+.bar.esp0.r4{background:#82AEC5;color:#173F55;border-color:#709FB8}
+/* Instalaciones sanitarias: verde */
+.bar.esp1.r3{background:#E0EEE7;color:#4E7161;border-color:#C9DFD3}
+.bar.esp1.r4{background:#8DBBA5;color:#285441;border-color:#79A990}
+/* Instalaciones mecánicas: arena / terracota */
+.bar.esp2.r3{background:#F2E7D9;color:#806447;border-color:#E6D3BC}
+.bar.esp2.r4{background:#D2A879;color:#624324;border-color:#C29361}
+/* Instalaciones de comunicaciones: lavanda */
+.bar.esp3.r3{background:#EAE5F2;color:#695A7E;border-color:#D8CDE8}
+.bar.esp3.r4{background:#B5A3D0;color:#493A63;border-color:#A28DBF}
+/* Revisión PRONIS conserva su identidad dorada */
+.bar.review{
+  height:8px;
+  min-height:8px;
+  border-radius:999px;
+  padding:0 4px;
+  font-size:7.5px;
+  background:repeating-linear-gradient(135deg,#F4E8C9 0,#F4E8C9 5px,#EEDDB5 5px,#EEDDB5 9px);
+  color:#80652F;
+  border:1px solid #E3D0A5;
+  box-shadow:none;
+}
+.bar:hover{height:12px;filter:saturate(1.08);box-shadow:0 2px 5px rgba(35,55,75,.15)}
+.bar.review:hover{height:10px}
+@media(max-width:760px){.bar{font-size:7.5px;padding:0 3px}}
+
+/* Plazos editables R3/R4 y revisión fija de 55 días */
+.timeline{--lw:820px}
+.trow{min-height:40px}
+.track{min-height:40px}
+.trow.group{min-height:30px}
+.trow.head{min-height:61px}
+.tlabel .name{max-width:190px;flex:1 1 150px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.pred-wrap,.r4-start-wrap{display:flex;align-items:center;gap:6px;flex:0 0 250px;width:250px;min-width:0;margin-left:auto}
+.pred-label{font:10px var(--sans);letter-spacing:.045em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.pred-select{font:11px var(--sans);color:var(--ink);background:#fff;border:1px solid #D9DFE3;border-radius:6px;padding:5px 22px 5px 7px;width:100%;min-width:0;box-shadow:inset 0 1px 1px rgba(15,35,66,.025)}
+.pred-select:focus{outline:2px solid #A9C8DC;outline-offset:1px;border-color:#82AEC5}
+.pred-select.edited{background:#F5FAFC;border-color:#82AEC5}
+.pred-note{font-size:10px;color:var(--faint);white-space:nowrap}
+.term-wrap,.r4-term-wrap{display:flex;align-items:center;gap:5px;flex:0 0 160px;width:160px;margin-left:8px}
+.r4-wrap{display:contents}
+.term-label{font:10px var(--sans);letter-spacing:.035em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.term-input{font:11px var(--mono);color:var(--ink);background:#fff;border:1px solid #D9DFE3;border-radius:6px;padding:5px 6px;width:58px;min-width:0}
+.r4-date{width:132px;min-width:132px}.r4-term-wrap [data-r4-duration]{width:58px;min-width:58px;padding-inline:6px}.term-input:focus{outline:2px solid #A9C8DC;outline-offset:1px;border-color:#82AEC5}
+.review-fixed{font:10px var(--mono);color:#8A6A32;background:#FAEBD0;border-radius:5px;padding:3px 5px;white-space:nowrap}
+@media(max-width:760px){.timeline{--lw:460px}.pred-wrap,.r4-start-wrap{flex:0 0 140px;width:140px;gap:3px}.pred-label{display:none}.tlabel .name{max-width:95px}.pred-select{font-size:10px;padding:4px 18px 4px 5px}.term-label{display:none}.term-input{width:48px;padding:4px}.r4-date{width:112px}.r4-wrap [data-r4-duration]{width:48px;min-width:48px;padding-inline:4px}.r4-term-wrap{flex:0 0 132px;width:132px;gap:4px;margin-left:3px}}
+/* Fecha editable junto al nombre de cada hito en el propio Gantt */
+.hit-inline-name{font:12px var(--cond);color:var(--ink);background:transparent;border:1px solid transparent;border-radius:5px;padding:4px 5px;min-width:0;max-width:230px;flex:1 1 auto}.hit-inline-name:hover{border-color:var(--line);background:#fff}.hit-inline-name:focus{outline:2px solid #A9C8DC;outline-offset:1px;border-color:#82AEC5;background:#fff}.hit-inline-date{font:10.5px var(--mono);color:var(--ink);background:#fff;border:1px solid #D9DFE3;border-radius:5px;padding:4px 5px;width:132px;min-width:0;flex:0 0 132px;margin-left:auto}
+.hit-inline-date:focus{outline:2px solid #A9C8DC;outline-offset:1px;border-color:#82AEC5}
+.hit-inline-date.empty{color:#A86518;background:#FFF9EF;border-color:#EAD8B8}
+.hit-row .name{max-width:230px;flex:1 1 auto}
+.hit-add-row .tlabel{padding:5px 11px 7px 48px;border-bottom:1px solid var(--grid);background:var(--surface)}.hit-add-row .track{background:var(--surface);border-bottom:1px solid var(--grid)}.hit-add-inline{font:11.5px var(--sans);color:var(--accent);background:transparent;border:1px dashed #A9C8C2;border-radius:6px;padding:5px 12px;cursor:pointer;transition:background .15s,border-color .15s}.hit-add-inline:hover{background:var(--band);border-color:var(--accent)}.hit-add-inline:focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px}
+@media(max-width:760px){.hit-inline-date{width:116px;flex-basis:116px;font-size:9px;padding:4px 2px}.hit-inline-name{max-width:105px;font-size:11px;padding:4px 2px}.hit-row .name{max-width:105px}}
+
+/* Control para plegar/desplegar los campos de predecesoras y plazos */
+.timeline.fields-hidden{--lw:365px}
+.timeline.fields-hidden .pred-wrap,.timeline.fields-hidden .term-wrap,.timeline.fields-hidden .r4-wrap{display:none!important}
+#toggleScheduleFields{min-width:205px}
+
+/* Seguimiento de avance programado vs. real */
+.progress-input{width:88px;min-width:78px;padding:6px 7px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:12px var(--mono);}
+.progress-cell{min-width:125px}.progress-cell .mini{margin-top:4px;min-width:80px}
+.progress-state{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:4px 7px;border-radius:5px;white-space:nowrap}
+.progress-state.ok{background:#FFF1C9;color:#855B08;border:1px solid #E8CF83}.progress-state.ahead{background:#DDF2E4;color:#216B43;border:1px solid #A8D7B8}.progress-state.behind{background:#FBE2E0;color:#A52D27;border:1px solid #EAB2AE}.progress-state.na{background:#EEF0F4;color:#687386}
+.progress-flag{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font:700 11px var(--sans);margin-left:2px;vertical-align:middle}
+.progress-flag.warn{background:#FFF0D8;color:#875514}.progress-flag.critical{background:#FCE5E3;color:#A52D27}
+tr.progress-critical td{background:#FFF7F6}tr.progress-warning td{background:#FFF7F6}
+
+/* Semáforo de avance: colores explícitos para el estado vs. programa */
+.tag.ok {
+  background: #FFF1BF !important;
+  color: #805B00 !important;
+  border: 1px solid #E8C85A;
+}
+.tag.ahead {
+  background: #DDF3E4 !important;
+  color: #176B3A !important;
+  border: 1px solid #8BC99F;
+}
+.tag.behind {
+  background: #FCE1E1 !important;
+  color: #A52626 !important;
+  border: 1px solid #E5A0A0;
+}
+.tag.na {
+  background: #EEF0F4 !important;
+  color: #5F6B7A !important;
+  border: 1px solid #D9DEE6;
+}
+
+
+/* El marcador del Gantt usa fecha real cuando existe; de lo contrario, fecha prevista. */
+.mark.actual-on-time{background:#2F9B62;box-shadow:0 0 0 1px #2F9B6255}
+.mark.actual-late{background:#D1453B;box-shadow:0 0 0 1px #D1453B66}
+
+
+/* Los hitos se administran únicamente en la tabla inferior; el Gantt refleja sus datos. */
+.readonly-hit{display:inline-block;min-width:0;max-width:230px;flex:1 1 auto;padding:4px 5px;border:1px solid transparent;border-radius:5px;background:transparent;cursor:default}
+.readonly-hit-date{display:inline-block;width:132px;flex:0 0 132px;margin-left:auto;padding:4px 5px;text-align:center;border:1px solid #E3E0D8;border-radius:5px;background:#F7F5F0;color:var(--ink);font:10.5px var(--mono);cursor:default}
+.readonly-hit-date.empty{color:#A86518;background:#FFF9EF;border-color:#EAD8B8}
+
+
+/* Comentarios editables por paquete en el detalle de planificación */
+.package-comment{box-sizing:border-box;width:220px;min-width:180px;min-height:48px;resize:vertical;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font:12px/1.4 var(--sans)}
+.package-comment:focus{outline:2px solid #A9C8DC;outline-offset:1px;border-color:#82AEC5;background:#fff}
+.package-comment::placeholder{color:var(--muted)}
+
+
+/* Guardado explícito de toda la configuración y edición del cronograma */
+.header-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.save-all{background:#E5F3F0;border-color:#A9CEC5;color:#145E55;font-weight:600}
+.save-all:hover{background:#D6EBE6}
+.save-all:active{transform:translateY(1px)}
+.save-status{font-size:11px;color:var(--muted);min-height:14px;text-align:right}
+@media(max-width:760px){.header-actions{align-items:flex-start}.save-status{text-align:left}}
+
+
+.save-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.restore-all{background:#F7F5F0;border-color:var(--line);color:var(--ink)}
+
+</style></head><body><main class="wrap"><header><div><p class="eyebrow">DIAR · Hospital Regional Docente de Trujillo · Diseño RIBA 3 y 4</p><h1>Cronograma maestro MEP</h1><p class="src">Programación de paquetes, entregas, revisión PRONIS y dependencias externas. Línea contractual: <b>05 nov 2026 – 28 feb 2028</b>. Fuente: Cronograma DIAR (1) (1).xlsx.</p></div><div class="header-actions"><div class="save-actions"><button class="button save-all" id="saveAll" type="button"><span aria-hidden="true">▣</span> Guardar cambios</button><button class="button restore-all" id="restoreAll" type="button"><span aria-hidden="true">↥</span> Cargar respaldo</button><input id="backupFile" type="file" accept=".json,application/json" hidden></div><span id="saveStatus" class="save-status" role="status" aria-live="polite">Guarda un respaldo para conservar tus cambios al cerrar el archivo</span><div class="stats" id="stats"></div></div></header>
+<section class="panel" aria-label="Filtros"><div class="filters"><div class="field grow"><label for="q">Buscar paquete</label><input type="search" id="q" placeholder="HVAC, baja tensión, EL-03…"></div><div class="field"><span class="lab">Especialidad</span><div class="ms" id="espBox"><button class="ms-btn" id="esp" aria-expanded="false">Todas</button><div class="ms-pop" id="espPop" hidden></div></div></div><div class="field"><span class="lab">Etapa</span><div class="seg" id="phase"><button data-phase="all" aria-pressed="true">R3 + R4</button><button data-phase="R3">R3</button><button data-phase="R4">R4</button></div></div><div class="field"><label for="alert">Control de plazo</label><select id="alert"><option value="all">Todos</option><option value="SOLAPE R3 / R4">Solapes R3/R4</option><option value="FALTA PLANIFICAR">Falta planificar</option><option value="FUERA CONTRATO">Fuera de contrato</option><option value="hit">Hito asociado sin fecha</option><option value="OK">Sin alerta de plazo</option></select></div><div class="field"><span class="lab">Escala</span><div class="seg" id="zoom"><button data-zoom="fit" aria-pressed="true">General</button><button data-zoom="week">Semanas</button><button data-zoom="day">Días</button></div></div></div><div class="pk"><div class="pk-head"><span class="lab" id="pkLab">Paquetes</span><div class="acts"><button class="lnk" id="all">Todos</button><button class="lnk" id="none">Ninguno</button><button class="lnk" id="reset">Restablecer filtros</button></div></div><div class="chips" id="chips"></div></div></section>
+<section class="panel"><div class="legend"><i><span class="swatch" style="background:var(--r3)"></span>Desarrollo R3</i><i><span class="swatch" style="background:var(--r4)"></span>Desarrollo R4</i><i><span class="swatch" style="background:#A9C8DC"></span>Eléctricas</i><i><span class="swatch" style="background:#B7D8C8"></span>Sanitarias</i><i><span class="swatch" style="background:#E4C9A7"></span>Mecánicas</i><i><span class="swatch" style="background:#CEC1E2"></span>Comunicaciones</i><i><span class="swatch" style="background:var(--rev)"></span>Revisión PRONIS</i><i><span class="diamond"></span>Hito externo</i><i><span class="diamond" style="background:#0F2342"></span>Entrega</i><i><span class="diamond" style="background:#718396"></span>Cierre</i><i><span class="linekey"></span>Límite contractual</i><i><span class="linekey" style="border-color:var(--accent);border-left-style:solid"></span>Hoy</i></div><div class="tlbar"><button class="button" id="showH" aria-pressed="true">Hitos externos ✓</button><button class="button" id="collapse">Contraer grupos</button><button class="button" id="measure" aria-pressed="false">Medir plazos</button><button class="button" id="today">Ir a hoy</button><button class="button" id="clearPin">Quitar guía</button><button class="button" id="resetPred" title="Restaurar las predecesoras originales">Restablecer predecesoras</button><button class="button" id="toggleScheduleFields" aria-expanded="true" title="Ocultar o mostrar predecesoras y plazos">− Ocultar predecesoras y plazos</button><span class="sp"></span><span class="selected" id="pinText"></span><span class="hint">Desplaza el diagrama · clic en barras o hitos para consultar fechas</span><div class="measurebox" id="measurebox" hidden><label for="ma">A</label><input type="date" id="ma"><label for="mb">B</label><input type="date" id="mb"><span class="meas" id="measText"></span><small class="subtle">También puedes elegir dos fechas haciendo clic en el diagrama.</small></div></div><div class="timeline" id="timeline" tabindex="0" aria-label="Diagrama de Gantt desplazable"><div class="timeline-inner" id="tl"></div></div></section>
+<section class="panel"><div class="cmp-head"><h2>Comparar programación entre paquetes</h2><p>Consulta qué estaba previsto para una fecha de referencia; no representa avance real.</p></div><div class="cmp-form"><div class="field"><label for="ref">Paquete o hito de referencia</label><select id="ref"></select></div><div class="field"><label for="refEvent">Evento de referencia</label><select id="refEvent"></select></div><div class="field"><label for="refDate">Fecha de comparación</label><input id="refDate" type="date"></div></div><div class="cmp-sum" id="cmpSum"></div><div class="tbl-wrap"><table id="cmpTbl"></table></div></section>
+<section class="panel"><div class="tbl-head"><div><h2>Detalle de planificación</h2><p>Fechas y duraciones del Excel, referencias de fórmulas y alertas calculadas. Una fila por fase.</p></div><button class="button" id="export">Exportar CSV visible</button></div><div class="tbl-wrap"><table id="tbl"></table></div></section>
+<section class="panel"><div class="tbl-head"><div><h2>Hitos externos y dependencias</h2><p>Los hitos externos no son entregables MEP.</p></div><button class="button hit-add" id="addHit">＋ Agregar hito</button></div><p class="hit-note">Puedes editar el nombre y la fecha de cada hito. Los cambios actualizan las predecesoras seleccionadas y el cronograma automáticamente.</p>
+<div class="hit-note" style="margin-top:8px">
+  Regla de inicio: si la fecha real de cumplimiento de un hito supera en 2 días o más la fecha prevista,
+  los paquetes que dependen de ese hito desplazan su inicio a la fecha real; con 0 o 1 día de diferencia
+  conservan la fecha prevista. Se recalculan entrega y cierre manteniendo los plazos y los 55 días de revisión.
+</div>
+<div class="tbl-wrap"><table id="hitTbl"></table></div></section>
+<footer class="notes"><p><b>Fuente y alcance</b> — Hoja2 del Excel adjunto. Se utilizaron los valores calculados guardados; el cierre R3 se obtiene sumando a la fecha fin R3 los días de revisión PRONIS. Los códigos de paquete y de hito son identificadores de esta visualización. Los sufijos de días del nombre original se conservan en observaciones sin atribuirles significado.</p><p><b>Lectura del Gantt</b> — Cada fase tiene una barra de desarrollo (inicio a entrega) y otra de revisión (entrega a cierre). Los solapes originales se mantienen. Las duraciones son días calendario.</p><p><b>Seguimiento de avance</b> — El avance programado se calcula automáticamente según los días calendario transcurridos entre el inicio y la entrega de cada fase (0% antes del inicio y 100% al llegar a la entrega). El avance real es editable por fase, de 0% a 100%. Se genera alerta crítica cuando el real está 10 puntos porcentuales o más por debajo del programado, y alerta preventiva cuando la diferencia es mayor a 5 y menor a 10 puntos. Los datos reales se guardan en este navegador.</p><p><b>Plazos editables</b> — El plazo de desarrollo R3 y R4 puede modificarse en cada fila. La fecha de inicio R4 se puede editar y conserva su desfase respecto a la entrega R3 cuando esta se desplaza. El levantamiento de observaciones se mantiene fijo en 55 días calendario para ambas etapas.</p><p><b>Predecesoras editables</b> — En cada paquete R3 puedes seleccionar un hito externo o un evento de otro paquete. Al cambiar la predecesora se recalculan las fechas de desarrollo, entrega, revisión y cierre, así como el inicio vinculado de R4. La selección se conserva en este navegador.</p><p><b>Datos sin fecha</b> — Se conservan como tales. El HTML es una copia independiente del Excel; no se sincroniza automáticamente.</p></footer></main><div class="tip" id="tip" hidden></div><script>const DATA = {"start":"2026-11-05","end":"2028-02-28","review":55,"packages":[{"id":"EL-01","esp":"Instalaciones Eléctricas","name":"Puesta a Tierra","alert":"OK","hitAlert":"OK","note":"Fila 12 de Hoja2. Sufijo original del nombre: 0 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":60,"delivery":"2027-02-03","review":55,"close":"2027-03-30","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-03-30","duration":90,"delivery":"2027-06-28","review":55,"close":"2027-08-22","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"EL-01 · Entrega R3 · fórmula E12+F12","formula":"=+E12+F12"}]},{"id":"EL-02","esp":"Instalaciones Eléctricas","name":"Media Tensión","alert":"OK","hitAlert":"OK","note":"Fila 13 de Hoja2. Sufijo original del nombre: 0 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":90,"delivery":"2027-03-05","review":55,"close":"2027-04-29","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-04-29","duration":120,"delivery":"2027-08-27","review":55,"close":"2027-10-21","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"EL-02 · Entrega R3 · fórmula E13+F13","formula":"=+E13+F13"}]},{"id":"EL-03","esp":"Instalaciones Eléctricas","name":"Baja Tensión","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 14 de Hoja2. R4 inicia 85 días antes del cierre previsto de R3.","phases":[{"start":"2026-12-05","duration":180,"delivery":"2027-06-03","review":55,"close":"2027-07-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-05-04","duration":245,"delivery":"2028-01-04","review":55,"close":"2028-02-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"EL-03 · Entrega R3 · fórmula E14-30","formula":"=+E14-30"}]},{"id":"SA-01","esp":"Instalaciones Sanitarias","name":"Red de Agua contra Incendios","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 16 de Hoja2. Sufijo original del nombre: -23 d (significado no especificado). R4 inicia 30 días antes del cierre previsto de R3.","phases":[{"start":"2026-12-05","duration":150,"delivery":"2027-05-04","review":55,"close":"2027-06-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-05-29","duration":210,"delivery":"2027-12-25","review":55,"close":"2028-02-18","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"SA-01 · Entrega R3 · fórmula E16+F16-30","formula":"=+E16+F16-30"}]},{"id":"SA-02","esp":"Instalaciones Sanitarias","name":"Manejo de Residuos Sólidos","alert":"OK","hitAlert":"OK","note":"Fila 17 de Hoja2. Sufijo original del nombre: -11 d (significado no especificado).","phases":[{"start":"2027-01-04","duration":60,"delivery":"2027-03-05","review":55,"close":"2027-04-29","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-01-04","phase":"R3","ids":["H05"],"date":"2027-01-04","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C8"},{"start":"2027-04-29","duration":90,"delivery":"2027-07-28","review":55,"close":"2027-09-21","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"SA-02 · Entrega R3 · fórmula E17+F17","formula":"=+E17+F17"}]},{"id":"SA-03","esp":"Instalaciones Sanitarias","name":"Red de Agua Fría, Red de Agua Caliente y Retorno, Red de Agua Blanda","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 18 de Hoja2. Sufijo original del nombre: -58 d (significado no especificado). R4 inicia 30 días antes del cierre previsto de R3.","phases":[{"start":"2026-12-05","duration":150,"delivery":"2027-05-04","review":55,"close":"2027-06-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-05-29","duration":210,"delivery":"2027-12-25","review":55,"close":"2028-02-18","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"SA-03 · Entrega R3 · fórmula E18+F18-30","formula":"=+E18+F18-30"}]},{"id":"SA-04","esp":"Instalaciones Sanitarias","name":"Red de Aguas Servidas, Ventilación, Drenaje de Aire Acondicionado y Drenajes Pluviales","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 19 de Hoja2. Sufijo original del nombre: -18 d (significado no especificado). R4 inicia 61 días antes del cierre previsto de R3.","phases":[{"start":"2027-01-15","duration":150,"delivery":"2027-06-14","review":55,"close":"2027-08-08","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-01-15","phase":"R3","ids":["H02"],"date":"2027-01-15","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C5"},{"start":"2027-06-08","duration":210,"delivery":"2028-01-04","review":55,"close":"2028-02-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"SA-04 · Entrega R3 · fórmula E19-6","formula":"=+E19-6"}]},{"id":"SA-05","esp":"Instalaciones Sanitarias","name":"Planta de Tratamiento de Agua para Hemodiálisis","alert":"OK","hitAlert":"OK","note":"Fila 20 de Hoja2. Sufijo original del nombre: 0 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":90,"delivery":"2027-03-05","review":55,"close":"2027-04-29","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-04-29","duration":120,"delivery":"2027-08-27","review":55,"close":"2027-10-21","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"SA-05 · Entrega R3 · fórmula E20+F20","formula":"=+E20+F20"}]},{"id":"SA-06","esp":"Instalaciones Sanitarias","name":"Red de Riego","alert":"OK","hitAlert":"OK","note":"Fila 21 de Hoja2. Sufijo original del nombre: 0 d (significado no especificado).","phases":[{"start":"2027-03-30","duration":60,"delivery":"2027-05-29","review":55,"close":"2027-07-23","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-03-30","phase":"R3","ids":["H06"],"date":"2027-03-30","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C9"},{"start":"2027-07-23","duration":90,"delivery":"2027-10-21","review":55,"close":"2027-12-15","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"SA-06 · Entrega R3 · fórmula E21+F21","formula":"=+E21+F21"}]},{"id":"ME-01","esp":"Instalaciones Mecánicas","name":"Grupos Electrógenos","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 23 de Hoja2. Sufijo original del nombre: -1 d (significado no especificado). R4 inicia 55 días antes del cierre previsto de R3. El inicio R3 está vinculado a la entrega R3 de Baja Tensión.","phases":[{"start":"2027-06-03","duration":90,"delivery":"2027-09-01","review":55,"close":"2027-10-26","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R3","ids":[],"date":null,"control":"Vínculo entre paquetes","dependency":"EL-03 · Entrega R3 (E14)","formula":"=+E14"},{"start":"2027-09-01","duration":120,"delivery":"2027-12-30","review":55,"close":"2028-02-23","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-01 · Entrega R3 · fórmula E23","formula":"=+E23"}]},{"id":"ME-02","esp":"Instalaciones Mecánicas","name":"Energías Renovables","alert":"OK","hitAlert":"OK","note":"Fila 24 de Hoja2. Sufijo original del nombre: 0 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":90,"delivery":"2027-03-05","review":55,"close":"2027-04-29","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-04-29","duration":120,"delivery":"2027-08-27","review":55,"close":"2027-10-21","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-02 · Entrega R3 · fórmula E24+F24","formula":"=+E24+F24"}]},{"id":"ME-03","esp":"Instalaciones Mecánicas","name":"Vapor y Retorno de Condensado","alert":"OK","hitAlert":"OK","note":"Fila 25 de Hoja2. Sufijo original del nombre: +2 d (significado no especificado).","phases":[{"start":"2027-01-15","duration":90,"delivery":"2027-04-15","review":55,"close":"2027-06-09","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-01-15","phase":"R3","ids":["H02"],"date":"2027-01-15","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C5"},{"start":"2027-06-09","duration":120,"delivery":"2027-10-07","review":55,"close":"2027-12-01","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-03 · Entrega R3 · fórmula E25+F25","formula":"=+E25+F25"}]},{"id":"ME-04","esp":"Instalaciones Mecánicas","name":"Sistema de Manejo de Humos","alert":"OK","hitAlert":"OK","note":"Fila 26 de Hoja2. Sufijo original del nombre: 0 d (significado no especificado).","phases":[{"start":"2027-02-03","duration":90,"delivery":"2027-05-04","review":55,"close":"2027-06-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R3","ids":[],"date":null,"control":"Referencia contractual","dependency":"Inicio contractual + 90 días","formula":"=+C3+90"},{"start":"2027-06-28","duration":120,"delivery":"2027-10-26","review":55,"close":"2027-12-20","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-04 · Entrega R3 · fórmula E26+F26","formula":"=+E26+F26"}]},{"id":"ME-05","esp":"Instalaciones Mecánicas","name":"Aire Acondicionado y Ventilación Mecánica (HVAC)","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 27 de Hoja2. Sufijo original del nombre: -20 d (significado no especificado). R4 inicia 55 días antes del cierre previsto de R3.","phases":[{"start":"2026-12-05","duration":150,"delivery":"2027-05-04","review":55,"close":"2027-06-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-05-04","duration":245,"delivery":"2028-01-04","review":55,"close":"2028-02-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-05 · Entrega R3 · fórmula E27","formula":"=+E27"}]},{"id":"ME-06","esp":"Instalaciones Mecánicas","name":"Cámaras de Congelación y Conservación","alert":"OK","hitAlert":"OK","note":"Fila 28 de Hoja2. Sufijo original del nombre: +2 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":90,"delivery":"2027-03-05","review":55,"close":"2027-04-29","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-04-29","duration":120,"delivery":"2027-08-27","review":55,"close":"2027-10-21","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-06 · Entrega R3 · fórmula E28+F28","formula":"=+E28+F28"}]},{"id":"ME-07","esp":"Instalaciones Mecánicas","name":"Combustibles","alert":"OK","hitAlert":"OK","note":"Fila 29 de Hoja2. Sufijo original del nombre: +2 d (significado no especificado).","phases":[{"start":"2027-01-15","duration":60,"delivery":"2027-03-16","review":55,"close":"2027-05-10","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-01-15","phase":"R3","ids":["H02"],"date":"2027-01-15","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C5"},{"start":"2027-05-10","duration":90,"delivery":"2027-08-08","review":55,"close":"2027-10-02","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-07 · Entrega R3 · fórmula E29+F29","formula":"=+E29+F29"}]},{"id":"ME-08","esp":"Instalaciones Mecánicas","name":"Transporte Neumático","alert":"OK","hitAlert":"OK","note":"Fila 30 de Hoja2.","phases":[{"start":"2027-02-03","duration":90,"delivery":"2027-05-04","review":55,"close":"2027-06-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-02-03","phase":"R3","ids":["H07"],"date":"2027-02-03","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C10"},{"start":"2027-06-28","duration":120,"delivery":"2027-10-26","review":55,"close":"2027-12-20","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-08 · Entrega R3 · fórmula E30+F30","formula":"=+E30+F30"}]},{"id":"ME-09","esp":"Instalaciones Mecánicas","name":"Transporte Vertical","alert":"OK","hitAlert":"OK","note":"Fila 31 de Hoja2.","phases":[{"start":"2027-03-05","duration":90,"delivery":"2027-06-03","review":55,"close":"2027-07-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-03-05","phase":"R3","ids":["H04"],"date":"2027-03-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C7"},{"start":"2027-07-28","duration":120,"delivery":"2027-11-25","review":55,"close":"2028-01-19","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-09 · Entrega R3 · fórmula E31+F31","formula":"=+E31+F31"}]},{"id":"ME-10","esp":"Instalaciones Mecánicas","name":"Gases Medicinales","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 32 de Hoja2. R4 inicia 55 días antes del cierre previsto de R3.","phases":[{"start":"2027-01-15","duration":150,"delivery":"2027-06-14","review":55,"close":"2027-08-08","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-01-15","phase":"R3","ids":["H02"],"date":"2027-01-15","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C5"},{"start":"2027-06-14","duration":204,"delivery":"2028-01-04","review":55,"close":"2028-02-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"ME-10 · Entrega R3 · fórmula E32","formula":"=+E32"}]},{"id":"TI-01","esp":"Instalaciones de Comunicaciones","name":"Cableado Estr., Videovig., Cont. Acc., Activos y Videoporteros e Intercom.","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 34 de Hoja2. Sufijo original del nombre: -51 d (significado no especificado). R4 inicia 55 días antes del cierre previsto de R3.","phases":[{"start":"2026-12-05","duration":150,"delivery":"2027-05-04","review":55,"close":"2027-06-28","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-05-04","duration":240,"delivery":"2027-12-30","review":55,"close":"2028-02-23","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-01 · Entrega R3 · fórmula E34","formula":"=+E34"}]},{"id":"TI-02","esp":"Instalaciones de Comunicaciones","name":"Detección y Alarma contra Incendios y Extinción de Incendios en Centro de Datos","alert":"OK","hitAlert":"OK","note":"Fila 35 de Hoja2. Sufijo original del nombre: -9 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":120,"delivery":"2027-04-04","review":55,"close":"2027-05-29","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-05-29","duration":210,"delivery":"2027-12-25","review":55,"close":"2028-02-18","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-02 · Entrega R3 · fórmula E35+F35","formula":"=+E35+F35"}]},{"id":"TI-03","esp":"Instalaciones de Comunicaciones","name":"Comunicación por Radio VHF/HF y Sistema Perifoneo","alert":"OK","hitAlert":"OK","note":"Fila 36 de Hoja2. Sufijo original del nombre: +2 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":60,"delivery":"2027-02-03","review":55,"close":"2027-03-30","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-03-30","duration":90,"delivery":"2027-06-28","review":55,"close":"2027-08-22","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-03 · Entrega R3 · fórmula E36+F36","formula":"=+E36+F36"}]},{"id":"TI-04","esp":"Instalaciones de Comunicaciones","name":"Llamada de Enf., Trazabilidad de Inst. Quirúr., Relojes Sinc., Sist. DAS, Telef. y TV IP","alert":"OK","hitAlert":"OK","note":"Fila 37 de Hoja2. Sufijo original del nombre: +2 d (significado no especificado).","phases":[{"start":"2027-01-15","duration":90,"delivery":"2027-04-15","review":55,"close":"2027-06-09","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-01-15","phase":"R3","ids":["H02"],"date":"2027-01-15","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C5"},{"start":"2027-06-09","duration":150,"delivery":"2027-11-06","review":55,"close":"2027-12-31","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-04 · Entrega R3 · fórmula E37+F37","formula":"=+E37+F37"}]},{"id":"TI-05","esp":"Instalaciones de Comunicaciones","name":"Mantenimiento de Ahorro Energético – BMS, Control de Accesos, CCTV","alert":"SOLAPE R3 / R4","hitAlert":"OK","note":"Fila 38 de Hoja2. Sufijo original del nombre: 0 d (significado no especificado). R4 inicia 55 días antes del cierre previsto de R3.","phases":[{"start":"2027-05-04","duration":90,"delivery":"2027-08-02","review":55,"close":"2027-09-26","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R3","ids":[],"date":null,"control":"Vínculo entre paquetes","dependency":"ME-05 · Inicio R4 (G27)","formula":"=+G27"},{"start":"2027-08-02","duration":150,"delivery":"2027-12-30","review":55,"close":"2028-02-23","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-05 · Entrega R3 · fórmula E38","formula":"=+E38"}]},{"id":"TI-06","esp":"Instalaciones de Comunicaciones","name":"Equipamiento Informático y Sistemas Ofimáticos","alert":"OK","hitAlert":"OK","note":"Fila 39 de Hoja2. Sufijo original del nombre: -21 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":120,"delivery":"2027-04-04","review":55,"close":"2027-05-29","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-05-29","duration":210,"delivery":"2027-12-25","review":55,"close":"2028-02-18","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-06 · Entrega R3 · fórmula E39+F39","formula":"=+E39+F39"}]},{"id":"TI-07","esp":"Instalaciones de Comunicaciones","name":"Procesamiento y Almacenamiento Centralizado, Conectividad y Seguridad Informática","alert":"OK","hitAlert":"OK","note":"Fila 40 de Hoja2. Sufijo original del nombre: +2 d (significado no especificado).","phases":[{"start":"2026-12-05","duration":60,"delivery":"2027-02-03","review":55,"close":"2027-03-30","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2026-12-05","phase":"R3","ids":["H01"],"date":"2026-12-05","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C4"},{"start":"2027-03-30","duration":90,"delivery":"2027-06-28","review":55,"close":"2027-08-22","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-07 · Entrega R3 · fórmula E40+F40","formula":"=+E40+F40"}]},{"id":"TI-08","esp":"Instalaciones de Comunicaciones","name":"Sistema PACS/RIS, Inf. de Historias Clínicas (HIS), Colas y Contenidos, Teleconf. y Sistema LIS","alert":"OK","hitAlert":"OK","note":"Fila 41 de Hoja2. Sufijo original del nombre: +2 d (significado no especificado).","phases":[{"start":"2027-01-15","duration":60,"delivery":"2027-03-16","review":55,"close":"2027-05-10","state":null,"progress":null,"base":null,"manual":null,"hitDate":"2027-01-15","phase":"R3","ids":["H02"],"date":"2027-01-15","control":"Inicio según hito · estado no informado","dependency":null,"formula":"=+C5"},{"start":"2027-05-10","duration":90,"delivery":"2027-08-08","review":55,"close":"2027-10-02","state":null,"progress":null,"base":null,"manual":null,"hitDate":null,"phase":"R4","ids":[],"date":null,"control":"Vínculo entre fases","dependency":"TI-08 · Entrega R3 · fórmula E41+F41","formula":"=+E41+F41"}]}],"hits":[{"id":"H01","name":"Arquitectura","date":"2026-12-05","state":"Sin estado informado"},{"id":"H02","name":"Equipamiento Médico","date":"2027-01-15","state":"Sin estado informado"},{"id":"H03","name":"Estudio de Iluminación","date":null,"state":"Sin estado informado"},{"id":"H04","name":"Estudio de Tráfico","date":"2027-03-05","state":"Sin estado informado"},{"id":"H05","name":"Estudio Basal","date":"2027-01-04","state":"Sin estado informado"},{"id":"H06","name":"Paisajismo","date":"2027-03-30","state":"Sin estado informado"},{"id":"H07","name":"Estudio de Demanda","date":"2027-02-03","state":"Sin estado informado"}]};
+const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])), fmt=d=>d?d.split('-').reverse().join('/'):'—', DAY=86400000, num=d=>Date.parse(d+'T00:00:00Z')/DAY, iso=n=>new Date(n*DAY).toISOString().slice(0,10), norm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(), esps=[...new Set(DATA.packages.map(p=>p.esp))], colors=['#6F9FBA','#79A995','#C09262','#9A86B8'], short=['Eléctricas','Sanitarias','Mecánicas','TIC'];
+const HITS_KEY='diar-mep-hitos-v1', BASE_HITS=JSON.parse(JSON.stringify(DATA.hits));let hmap={};try{const savedHits=JSON.parse(localStorage.getItem(HITS_KEY)||'null');if(Array.isArray(savedHits))DATA.hits=savedHits}catch(e){}hmap=Object.fromEntries(DATA.hits.map(h=>[h.id,h]));const first=num(DATA.start), last=num(DATA.end), end=last+1, today=new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Lima'}).format(new Date());
+let selEsp=new Set(esps), selected=new Set(DATA.packages.map(p=>p.id)), phase='all', zoom='fit', showH=true, collapsed=new Set(), pin=null, measuring=false, nextMeasure='ma', px=2, currentRows=[], currentPackages=[];
+const BASE_PACKAGES=JSON.parse(JSON.stringify(DATA.packages));
+const basePackageMap=Object.fromEntries(BASE_PACKAGES.map(p=>[p.id,p]));
+const PRED_KEY='diar-mep-predecesoras-v2', SCHEDULE_KEY='diar-mep-plazos-v1';let predecessorSelections={}, scheduleEdits={};
+const PROGRESS_KEY='diar-mep-avance-real-v1';let realProgress={};try{realProgress=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}')||{}}catch(e){realProgress={}}
+for(const p of DATA.packages)for(const f of p.phases){const k=p.id+'|'+f.phase;if(Object.prototype.hasOwnProperty.call(realProgress,k))f.progress=realProgress[k]}
+function saveRealProgress(){try{localStorage.setItem(PROGRESS_KEY,JSON.stringify(realProgress))}catch(e){}}
+const COMMENTS_KEY='diar-mep-comentarios-paquete-v1';let packageComments={};try{packageComments=JSON.parse(localStorage.getItem(COMMENTS_KEY)||'{}')||{}}catch(e){packageComments={}}
+function savePackageComments(){try{localStorage.setItem(COMMENTS_KEY,JSON.stringify(packageComments))}catch(e){}}
+function progressInfo(p,f){if(!f.start||!f.delivery)return {planned:null,actual:f.progress==null?null:f.progress*100,delta:null,status:'Sin planificación',kind:'na'};const a=num(f.start),b=Math.max(a+1,num(f.delivery)),now=num(today);const planned=Math.max(0,Math.min(100,(now-a)/(b-a)*100));const actual=f.progress==null?null:f.progress*100;if(actual==null)return {planned,actual,delta:null,status:'Pendiente de registrar',kind:'na'};const delta=actual-planned;if(Math.abs(delta)<0.05)return {planned,actual,delta,status:'Igual al programado',kind:'ok'};if(delta>0)return {planned,actual,delta,status:'Mayor al programado',kind:'ahead'};return {planned,actual,delta,status:'Por debajo de lo programado',kind:'behind'}}
+try{scheduleEdits=JSON.parse(localStorage.getItem(SCHEDULE_KEY)||'{}')||{}}catch(e){scheduleEdits={}}
+function scheduleEdit(id){return scheduleEdits[id]||(scheduleEdits[id]={r3Duration:null,r4Duration:null,r4Offset:null})}
+function saveScheduleEdits(){try{localStorage.setItem(SCHEDULE_KEY,JSON.stringify(scheduleEdits))}catch(e){}}
+function defaultR4Offset(p){const a=p.phases.find(x=>x.phase==='R3'),b=p.phases.find(x=>x.phase==='R4');return a?.delivery&&b?.start?num(b.start)-num(a.delivery):0}
+try{predecessorSelections=JSON.parse(localStorage.getItem(PRED_KEY)||'{}')||{}}catch(e){predecessorSelections={}}
+function defaultPredecessorSelection(p){const f=p.phases[0];if(f.ids&&f.ids.length)return 'H:'+f.ids[0];let m=(f.dependency||'').match(/([A-Z]{2}-\d+)\s*·\s*Entrega R3/i);if(m)return 'P:'+m[1]+':R3:delivery';m=(f.dependency||'').match(/([A-Z]{2}-\d+)\s*·\s*Inicio R4/i);if(m)return 'P:'+m[1]+':R4:start';return 'BASE'}
+function predecessorSelection(p){return predecessorSelections[p.id]||defaultPredecessorSelection(p)}
+function predecessorOptions(currentId){let html='<option value="BASE">Mantener fecha original</option><optgroup label="Hitos externos">';html+=DATA.hits.map(h=>`<option value="H:${h.id}" ${h.date?'':'disabled'}>${h.id} · ${esc(h.name)}${h.date?' · '+fmt(h.date):' · Sin fecha'}</option>`).join('');html+='</optgroup><optgroup label="Predecesoras de otros paquetes">';for(const p of DATA.packages){if(p.id===currentId)continue;for(const f of p.phases){for(const [key,label] of [['start','Inicio'],['delivery','Entrega'],['close','Cierre']]){const d=f[key];if(d)html+=`<option value="P:${p.id}:${f.phase}:${key}">${p.id} · ${esc(p.name)} · ${f.phase} · ${label} (${fmt(d)})</option>`}}}return html+'</optgroup>'}
+function predecessorLabel(p){const v=predecessorSelection(p);if(v==='BASE')return 'Fecha original';if(v.startsWith('H:')){const h=hmap[v.slice(2)];return h?`${h.id} · ${h.name}`:'Hito no disponible'};const a=v.split(':');const q=basePackageMap[a[1]];const f=q?.phases.find(x=>x.phase===a[2]);const label={start:'Inicio',delivery:'Entrega',close:'Cierre'}[a[3]]||a[3];return q&&f?`${q.id} · ${q.name} · ${f.phase} · ${label}`:'Predecesora no disponible'}
+function predecessorValue(p,f){return predecessorLabel(p)}
+function savePredecessor(id,value){predecessorSelections[id]=value;try{localStorage.setItem(PRED_KEY,JSON.stringify(predecessorSelections))}catch(e){}}
+function plusDays(date,days){return date?iso(num(date)+Number(days||0)):null}
+function recomputeSchedule(){
+  for(const p of DATA.packages){const b=basePackageMap[p.id];p.phases=JSON.parse(JSON.stringify(b.phases));for(const pf of p.phases){const pk=p.id+'|'+pf.phase;if(Object.prototype.hasOwnProperty.call(realProgress,pk))pf.progress=realProgress[pk]}const e=scheduleEdit(p.id),f3=p.phases.find(x=>x.phase==='R3'),f4=p.phases.find(x=>x.phase==='R4');if(f3){if(e.r3Duration!=null&&Number(e.r3Duration)>0)f3.duration=Number(e.r3Duration);f3.review=55}if(f4){if(e.r4Duration!=null&&Number(e.r4Duration)>0)f4.duration=Number(e.r4Duration);f4.review=55}}
+  const done=new Set(),busy=new Set();
+  function calc(id){if(done.has(id))return;const p=DATA.packages.find(x=>x.id===id),b=basePackageMap[id];if(!p||!b)return;if(busy.has(id))return;busy.add(id);
+    const f=p.phases[0],bf=b.phases[0],sel=predecessorSelection(p);let start=bf.start;
+    if(sel.startsWith('H:')){
+      const hit=hmap[sel.slice(2)];
+      start=hit?.date||bf.start;
+      // La fecha real habilita el inicio cuando el hito se cumple con 2 o más días de retraso.
+      if(hit?.date&&hit?.actualDate&&num(hit.actualDate)-num(hit.date)>=2)start=hit.actualDate;
+    }
+    else if(sel.startsWith('P:')){const a=sel.split(':');const targetId=a[1],phaseName=a[2],field=a[3];calc(targetId);const target=DATA.packages.find(x=>x.id===targetId);const tf=target?.phases.find(x=>x.phase===phaseName);start=tf?.[field]||bf.start}
+    if(start){f.start=start;f.delivery=plusDays(start,f.duration);f.close=plusDays(f.delivery,55);f.review=55}
+    const f4=p.phases.find(x=>x.phase==='R4'),b4=b.phases.find(x=>x.phase==='R4'),edit=scheduleEdit(id);
+    if(f4&&b4){const offset=edit.r4Offset!=null?Number(edit.r4Offset):defaultR4Offset(b);f4.start=f.delivery?plusDays(f.delivery,offset):b4.start;if(f4.start){f4.delivery=plusDays(f4.start,f4.duration);f4.close=plusDays(f4.delivery,55);f4.review=55}}
+    busy.delete(id);done.add(id);
+  }
+  for(const p of DATA.packages)calc(p.id);
+}
+const matches=()=>DATA.packages.filter(p=>selEsp.has(p.esp)&&norm(p.id+' '+p.name+' '+p.esp).includes(norm($('q').value))&&($('alert').value==='all'||($('alert').value==='hit'?p.hitAlert!=='OK':p.alert===$('alert').value)));
+const phases=p=>p.phases.filter(f=>phase==='all'||f.phase===phase);
+function setButtons(id,key,value){$(id).querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset[key]===value))}
+function renderEsp(){ $('esp').textContent=selEsp.size===esps.length?'Todas las especialidades':selEsp.size?short.filter((x,i)=>selEsp.has(esps[i])).join(', '):'Ninguna';$('espPop').innerHTML=`<label class="all"><input type="checkbox" id="espAll" ${selEsp.size===esps.length?'checked':''}>Todas</label>`+esps.map((e,i)=>`<label><input type="checkbox" data-esp="${i}" ${selEsp.has(e)?'checked':''}>${esc(e)} <span class="n">${DATA.packages.filter(p=>p.esp===e).length}</span></label>`).join('');$('espAll').indeterminate=selEsp.size>0&&selEsp.size<esps.length; $('espAll').onchange=e=>{selEsp=new Set(e.target.checked?esps:[]);render()};$('espPop').querySelectorAll('[data-esp]').forEach(b=>b.onchange=()=>{const e=esps[+b.dataset.esp];b.checked?selEsp.add(e):selEsp.delete(e);render()})}
+function renderChips(){const m=matches();$('pkLab').textContent=`Paquetes · ${m.filter(p=>selected.has(p.id)).length} de ${m.length}`;$('chips').innerHTML=m.map(p=>`<button class="chip" data-id="${p.id}" aria-pressed="${selected.has(p.id)}" title="${esc(p.name)}" style="--c:${colors[esps.indexOf(p.esp)]}"><span class="sw"></span><span class="t">${p.id} · ${esc(p.name)}</span></button>`).join('')||'<span class="subtle">No hay paquetes para los filtros seleccionados.</span>';$('chips').querySelectorAll('button').forEach(b=>b.onclick=()=>{selected.has(b.dataset.id)?selected.delete(b.dataset.id):selected.add(b.dataset.id);render()})}
+function stats(){const p=currentPackages, f=currentRows, advances=f.filter(r=>r.f.progress!==null),alarms=f.filter(({p,f})=>progressInfo(p,f).delta!==null&&progressInfo(p,f).delta<=-5);const items=[[p.length,'Paquetes visibles'],[f.length,'Fases visibles'],[p.filter(x=>x.alert==='SOLAPE R3 / R4').length,'Solapes'],[p.filter(x=>x.alert==='FALTA PLANIFICAR').length,'Sin planificar'],[DATA.hits.filter(h=>!h.date).length,'Hitos sin fecha'],[advances.length?Math.round(100*advances.reduce((s,r)=>s+r.f.progress,0)/advances.length)+'%':'—','Avance real'],[alarms.length,'Alertas de avance']];$('stats').innerHTML=items.map(([v,l])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('')}
+function label(txt,cls=''){return `<span class="tag ${cls}">${esc(txt)}</span>`} function warn(p){return p.alert!=='OK'?`<span class="warn" title="${esc(p.alert)}">⚠</span>`:p.hitAlert!=='OK'?`<span class="warn" title="${esc(p.hitAlert)}">•</span>`:''}
+function progressFlag(p,f){const x=progressInfo(p,f);if(x.delta==null||x.delta>=-5)return '';return x.delta<=-10?`<span class="progress-flag critical" title="Retraso crítico: avance real ${Math.round(x.actual)}%, programado ${Math.round(x.planned)}%">⚠</span>`:`<span class="progress-flag warn" title="Alerta de retraso: avance real ${Math.round(x.actual)}%, programado ${Math.round(x.planned)}%">!</span>`}
+function detail(p,f){return `${p.id} · ${p.name} · ${f.phase}${f.phase==='R3'?'\nPredecesora: '+predecessorValue(p,f):''}\nInicio: ${fmt(f.start)}\nEntrega: ${fmt(f.delivery)}\nCierre: ${fmt(f.close)}\nDesarrollo: ${f.duration??'—'} días · Revisión: ${f.review??'—'} días\nEstado: ${f.state??'Sin estado'} · Avance real: ${f.progress==null?'Sin dato':Math.round(f.progress*100)+'%'}\nAvance programado: ${progressInfo(p,f).planned==null?'Sin cálculo':Math.round(progressInfo(p,f).planned)+'%'} · ${progressInfo(p,f).status}\n${p.alert} · ${f.control}${dep(f)!=='—'?' · '+dep(f):''}${p.note?'\n'+p.note:''}`}
+let grid='', months='', ticks='';const left=d=>(num(d)-first)*px, coord=n=>(n-first)*px;
+function timeline(){const box=$('timeline'), scrollX=box.scrollLeft,scrollY=box.scrollTop;const lw=parseFloat(getComputedStyle(box).getPropertyValue('--lw'))||365;px=zoom==='fit'?Math.max(1.65,(box.clientWidth-lw-1)/(end-first)):zoom==='week'?4:zoom==='day'?20:2;const tw=(end-first)*px;let gridParts=[],monthParts=[],tickParts=[];let cursor=first;while(cursor<end){let dt=new Date(cursor*DAY), next=Math.min(end,Date.UTC(dt.getUTCFullYear(),dt.getUTCMonth()+1,1)/DAY);let text=dt.toLocaleDateString('es-PE',{month:'short',year:'numeric',timeZone:'UTC'}).replace('.','');monthParts.push(`<div class="month" style="left:${coord(cursor)}px;width:${(next-cursor)*px}px">${text.toUpperCase()}</div>`);gridParts.push(`<span class="gridline major" style="left:${coord(cursor)}px"></span>`);cursor=next}
+for(let n=first;n<end;n++){let d=new Date(n*DAY),dow=d.getUTCDay();if(zoom==='day'||dow===1||n===first){if(zoom!=='fit')gridParts.push(`<span class="gridline" style="left:${coord(n)}px"></span>`);let width=Math.min(end-n,zoom==='day'?1:7)*px;let t=zoom==='day'?d.getUTCDate():zoom==='week'?`${String(d.getUTCDate()).padStart(2,'0')}`:dow===1&&d.getUTCDate()<=7?String(d.getUTCDate()).padStart(2,'0'):'';if(t)tickParts.push(`<div class="tick" style="left:${coord(n)}px;width:${width}px">${t}</div>`)}}
+grid=gridParts.join('');months=monthParts.join('');ticks=tickParts.join('');
+function lines(axis=false){return [[DATA.end,'limit','FIN CONTRATO'],[today,'today','HOY'],[pin,'pin',pin?fmt(pin):''],[measuring?$('ma').value:null,'measureA','A'],[measuring?$('mb').value:null,'measureB','B']].filter(([d])=>d&&num(d)>=first&&num(d)<=last).map(([d,c,t])=>`<div class="date-line ${c}" style="left:${left(d)}px">${axis?`<span>${t}</span>`:''}</div>`).join('')}
+const row=(l,t='',cls='')=>`<div class="trow ${cls}"><div class="tlabel">${l}</div><div class="track">${grid}${t}${lines()}</div></div>`; const group=(key,title,count)=>row(`<button data-group="${key}" aria-expanded="${!collapsed.has(key)}">${collapsed.has(key)?'▸':'▾'} ${esc(title)}</button><small>${count}</small>`,'','group');
+const mark=(d,cls,tip)=>d?`<button class="mark ${cls}" style="left:${left(d)}px" data-date="${d}" data-tip="${esc(tip)}" aria-label="${esc(tip)}"></button>`:'';
+const bar=(a,b,cls,txt,tip,espIndex)=>a&&b?`<button class="bar ${cls} esp${espIndex}" style="left:${left(a)}px;width:${Math.max(2,(num(b)-num(a))*px)}px" data-date="${a}" data-tip="${esc(tip)}" aria-label="${esc(tip)}">${esc(txt)}</button>`:'';
+let out=`<div class="trow head"><div class="tlabel">Paquete / hito · fase</div><div class="track axisTrack">${months}${ticks}${lines(true)}</div></div>`;
+if(showH){out+=group('hits','Hitos externos',DATA.hits.length);if(!collapsed.has('hits'))DATA.hits.forEach(h=>{const effectiveDate=h.actualDate||h.date;const markerClass=h.actualDate?(h.date&&h.actualDate>h.date?'external actual-late':'external actual-on-time'):'external';const markerTip=`${h.id} · ${h.name}\nFecha prevista: ${fmt(h.date)}\nFecha real: ${fmt(h.actualDate)}\nFecha representada en Gantt: ${fmt(effectiveDate)}\nEstado: ${h.state}`;out+=row(`<span class="id">${h.id}</span><span class="hit-inline-name readonly-hit" title="Nombre administrado en la tabla Hitos externos">${esc(h.name)}</span><span class="hit-inline-date readonly-hit-date ${effectiveDate?'':'empty'}" title="Fecha efectiva: real si está registrada; de lo contrario, prevista">${fmt(effectiveDate)}</span>`,effectiveDate?mark(effectiveDate,markerClass,markerTip):'<span class="nodate">Sin fecha prevista ni real</span>','hit-row')});out+=row('<button type="button" class="hit-add-inline" id="addHitInline">＋ Agregar hito</button>','','hit-add-row')}
+for(let i=0;i<esps.length;i++){const pp=currentPackages.filter(p=>p.esp===esps[i]);if(!pp.length)continue;out+=group('esp'+i,esps[i],pp.length);if(collapsed.has('esp'+i))continue;for(const p of pp)for(const f of phases(p)){const info=detail(p,f);out+=row(`<span class="id">${p.id}</span><span class="name" title="${esc(p.name)}">${esc(p.name)}</span>${warn(p)}${progressFlag(p,f)}<span class="phase ${f.phase}">${f.phase}</span>${f.phase==='R3'?`<span class="pred-wrap"><span class="pred-label">Predecesora</span><select class="pred-select" data-pred="${p.id}" aria-label="Predecesora de ${esc(p.id)} · ${esc(p.name)}" title="Selecciona un hito o evento predecesor">${predecessorOptions(p.id)}</select></span><span class="term-wrap"><span class="term-label">Plazo R3</span><input class="term-input" type="number" min="1" step="1" data-r3-duration="${p.id}" value="${f.duration}" title="Plazo de desarrollo RIBA 3 en días calendario" aria-label="Plazo R3 de ${p.id}"><span class="term-label">días</span></span>`:`<span class="r4-wrap"><span class="r4-start-wrap"><span class="term-label">Inicio R4</span><input class="term-input r4-date" type="date" data-r4-start="${p.id}" value="${f.start||''}" title="Fecha de inicio RIBA 4" aria-label="Inicio R4 de ${p.id}"></span><span class="r4-term-wrap"><span class="term-label">Plazo R4</span><input class="term-input" type="number" min="1" step="1" data-r4-duration="${p.id}" value="${f.duration}" title="Plazo de desarrollo RIBA 4 en días calendario" aria-label="Plazo R4 de ${p.id}"><span class="term-label">días</span></span></span>`}`,f.start?bar(f.start,f.delivery,f.phase.toLowerCase(),`${f.duration} d`,info,esps.indexOf(p.esp))+bar(f.delivery,f.close,'review',`${f.review} d`,info,esps.indexOf(p.esp))+mark(f.delivery,'delivery',`Entrega · ${fmt(f.delivery)}\n${info}`)+mark(f.close,'close',`Cierre · ${fmt(f.close)}\n${info}`):'<span class="nodate">Sin fecha de inicio · falta planificar</span>')}}
+if(!currentPackages.length)out+=row('<span class="subtle">Sin paquetes visibles</span>');$('tl').style.setProperty('--tw',tw+'px');$('tl').innerHTML=out;box.scrollLeft=scrollX;box.scrollTop=scrollY;$('tl').querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{let k=b.dataset.group;collapsed.has(k)?collapsed.delete(k):collapsed.add(k);timeline()});const addInline=$('addHitInline');if(addInline)addInline.onclick=e=>{e.stopPropagation();addHit()};$('tl').querySelectorAll('[data-pred]').forEach(sel=>{const id=sel.dataset.pred,p=DATA.packages.find(x=>x.id===id);sel.value=predecessorSelection(p);sel.classList.toggle('edited',Object.prototype.hasOwnProperty.call(predecessorSelections,id));sel.onchange=()=>{savePredecessor(id,sel.value);recomputeSchedule();render()}});$('tl').querySelectorAll('[data-r3-duration]').forEach(input=>{input.onchange=()=>{const id=input.dataset.r3Duration,v=Number(input.value);if(!Number.isFinite(v)||v<1){input.value=DATA.packages.find(p=>p.id===id).phases[0].duration;return}scheduleEdit(id).r3Duration=v;saveScheduleEdits();recomputeSchedule();render()};input.onclick=e=>e.stopPropagation();input.onpointerdown=e=>e.stopPropagation()});$('tl').querySelectorAll('[data-r4-duration]').forEach(input=>{input.onchange=()=>{const id=input.dataset.r4Duration,v=Number(input.value);if(!Number.isFinite(v)||v<1)return;scheduleEdit(id).r4Duration=v;saveScheduleEdits();recomputeSchedule();render()};input.onclick=e=>e.stopPropagation();input.onpointerdown=e=>e.stopPropagation()});$('tl').querySelectorAll('[data-r4-start]').forEach(input=>{input.onchange=()=>{const id=input.dataset.r4Start,p=DATA.packages.find(x=>x.id===id),f3=p?.phases.find(x=>x.phase==='R3');if(!f3?.delivery||!input.value)return;scheduleEdit(id).r4Offset=num(input.value)-num(f3.delivery);saveScheduleEdits();recomputeSchedule();render()};input.onclick=e=>e.stopPropagation();input.onpointerdown=e=>e.stopPropagation()});$('tl').querySelectorAll('[data-tip]').forEach(b=>{b.onpointerenter=e=>tip(e,b.dataset.tip);b.onpointermove=e=>tip(e,b.dataset.tip);b.onpointerleave=hideTip;b.onfocus=()=>{const r=b.getBoundingClientRect();tip({clientX:r.left,clientY:r.top},b.dataset.tip)};b.onblur=hideTip;b.onclick=e=>{e.stopPropagation();pick(b.dataset.date)}});$('pinText').textContent=pin?'Guía: '+fmt(pin):'';measureText()}
+function tip(e,t){const a=$('tip');a.innerHTML=t.split('\n').map((x,i)=>i===0?`<b>${esc(x)}</b>`:`<div>${esc(x)}</div>`).join('');a.hidden=false;a.style.left=Math.max(5,Math.min(e.clientX+15,innerWidth-a.offsetWidth-10))+'px';a.style.top=Math.max(5,Math.min(e.clientY+15,innerHeight-a.offsetHeight-10))+'px'}function hideTip(){$('tip').hidden=true}
+function pick(d){if(measuring){$(nextMeasure).value=d;nextMeasure=nextMeasure==='ma'?'mb':'ma'}else pin=d;hideTip();timeline()}
+function measureText(){let a=$('ma').value,b=$('mb').value;if(!a||!b){$('measText').textContent='Selecciona A y B';return}let x=Math.min(num(a),num(b)),y=Math.max(num(a),num(b)),work=0;for(let n=x;n<y;n++){let wd=new Date(n*DAY).getUTCDay();if(wd>0&&wd<6)work++}$('measText').textContent=`${y-x} días calendario · ${work} lun–vie · ${((y-x)/7).toFixed(1)} semanas`}
+function table(id,headers,rows){$(id).innerHTML=`<thead><tr>${headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')||`<tr><td colspan="${headers.length}" class="subtle">No hay registros visibles.</td></tr>`}</tbody>`}
+function dep(f){if(f.phase==='R3'){const p=DATA.packages.find(x=>x.phases[0]===f);return p?predecessorLabel(p):'—'}return [...f.ids.map(i=>`${i} · ${hmap[i]?.name??'Sin identificación'}`),...(f.dependency?[f.dependency]:[])].join('; ')||'—'}
+function hitCompliance(h){
+ const today=new Date(),todayISO=new Date(today.getTime()-today.getTimezoneOffset()*60000).toISOString().slice(0,10);
+ if(h.actualDate){
+  if(!h.date)return {text:'Registrado · sin fecha prevista',cls:'attn'};
+  return h.actualDate<=h.date?{text:'Cumplido en fecha',cls:'good'}:{text:'Cumplido con retraso',cls:'late'};
+ }
+ if(!h.date)return {text:'Pendiente · sin fecha',cls:'attn'};
+ return h.date<todayISO?{text:'Vencido · sin fecha real',cls:'late'}:{text:'Pendiente',cls:'attn'};
+}
+function renderHitTable(){
+ const rows=DATA.hits.map(h=>{
+  const linked=DATA.packages.flatMap(p=>p.phases.filter(f=>f.ids.includes(h.id)).map(f=>p.id+' '+f.phase)).join(', ')||'—';
+  const custom=!BASE_HITS.some(x=>x.id===h.id),st=hitCompliance(h);
+  return `<tr><td class="d">${h.id}</td><td><input class="hit-edit" data-hit-name="${h.id}" value="${esc(h.name)}" aria-label="Nombre de ${h.id}"></td><td><input class="hit-edit hit-date" type="date" data-hit-date="${h.id}" value="${h.date||''}" aria-label="Fecha prevista de ${h.id}"></td><td><input class="hit-edit hit-date" type="date" data-hit-actual="${h.id}" value="${h.actualDate||''}" aria-label="Fecha real de cumplimiento de ${h.id}"></td><td>${label(st.text,st.cls)}</td><td class="note">${esc(linked)}</td><td>${custom?`<button class="button" data-remove-hit="${h.id}" title="Eliminar hito agregado">Eliminar</button>`:'—'}</td></tr>`
+ });
+ table('hitTbl',['ID','Hito externo · editable','Fecha prevista · editable','Fecha real de cumplimiento · editable','Estado de cumplimiento','Paquetes asociados (fases)','Acción'],rows);
+ $('hitTbl').querySelectorAll('[data-hit-name],[data-hit-date],[data-hit-actual]').forEach(el=>el.onchange=()=>{
+  const id=el.dataset.hitName||el.dataset.hitDate||el.dataset.hitActual;
+  const h=DATA.hits.find(x=>x.id===id);if(!h)return;
+  if(el.hasAttribute('data-hit-name'))h.name=el.value.trim()||h.id;
+  else if(el.hasAttribute('data-hit-date'))h.date=el.value||null;
+  else h.actualDate=el.value||null;
+  saveHits();recomputeSchedule();syncRefOptions();render()
+ });
+ $('hitTbl').querySelectorAll('[data-remove-hit]').forEach(b=>b.onclick=()=>{
+  const id=b.dataset.removeHit;if(!confirm(`¿Eliminar el hito agregado ${id}?`))return;
+  DATA.hits=DATA.hits.filter(h=>h.id!==id);
+  for(const [pid,v] of Object.entries(predecessorSelections))if(v==='H:'+id)delete predecessorSelections[pid];
+  try{localStorage.setItem(PRED_KEY,JSON.stringify(predecessorSelections))}catch(e){}
+  saveHits();refreshHmap();recomputeSchedule();syncRefOptions();render()
+ })
+}
+function saveHits(){try{localStorage.setItem(HITS_KEY,JSON.stringify(DATA.hits))}catch(e){}}function refreshHmap(){hmap=Object.fromEntries(DATA.hits.map(h=>[h.id,h]))}
+function syncRefOptions(){const current=$('ref').value;$('ref').innerHTML='<option value="">Fecha manual</option><optgroup label="Paquetes MEP">'+DATA.packages.map(p=>`<option value="${p.id}">${p.id} · ${esc(p.name)}</option>`).join('')+'</optgroup><optgroup label="Hitos externos">'+DATA.hits.map(h=>`<option value="${h.id}">${h.id} · ${esc(h.name)}</option>`).join('')+'</optgroup>';$('ref').value=current}
+function addHit(){let n=1;while(DATA.hits.some(h=>h.id==='H'+String(n).padStart(2,'0')))n++;const id='H'+String(n).padStart(2,'0');DATA.hits.push({id,name:'',date:null,state:'Sin estado informado'});refreshHmap();saveHits();syncRefOptions();render();const input=$('hitTbl').querySelector(`[data-hit-name="${id}"]`);if(input){input.focus();input.scrollIntoView({block:'nearest',inline:'nearest'});input.select()}}
+function tables(){
+ const rows=currentRows.map(({p,f})=>{const x=progressInfo(p,f),planned=x.planned==null?'—':Math.round(x.planned)+'%',actual=f.progress==null?'':Math.round(f.progress*100);const stateClass=x.kind;const rowClass=x.delta!==null&&x.delta<=-10?'progress-critical':x.delta!==null&&x.delta< -5?'progress-warning':'';return `<tr class="${rowClass}"><td class="d">${p.id}</td><td>${esc(p.esp)}</td><td class="p">${esc(p.name)}</td><td><span class="phase ${f.phase}">${f.phase}</span></td>${[f.start,f.delivery,f.close].map(d=>`<td class="d">${fmt(d)}</td>`).join('')}<td class="d">${f.duration??'—'}</td><td class="d">${f.review??'—'}</td><td>${label(f.state??'Sin estado')}</td><td class="progress-cell">${planned}${x.planned==null?'':`<div class="mini"><b style="width:${x.planned}%"></b></div>`}</td><td class="progress-cell"><input class="progress-input" type="number" min="0" max="100" step="1" placeholder="%" data-real-progress="${p.id}|${f.phase}" value="${actual}" aria-label="Avance real porcentual de ${p.id} ${f.phase}"></td><td>${label(x.status,stateClass)}</td><td class="d">${x.delta==null?'—':(x.delta>0?'+':'')+Math.round(x.delta)+' pp'}</td><td class="note">${esc(dep(f))}</td><td>${label(f.control,f.control==='Sin dependencia'?'':'attn')}</td><td>${label(p.alert,p.alert==='OK'?'good':'attn')}</td><td class="note">${esc(p.note??'—')}</td><td><textarea class="package-comment" data-package-comment="${p.id}" rows="2" placeholder="Agregar comentario..." aria-label="Comentario del paquete ${p.id}">${esc(packageComments[p.id]??'')}</textarea></td></tr>`});
+ table('tbl',['ID','Especialidad','Paquete','Fase','Inicio','Entrega','Cierre','Desarrollo (d)','Revisión (d)','Estado real','Avance programado','Avance real · editable (%)','Estado vs. programa','Diferencia','Dependencias','Control de dependencia','Alerta plazo','Observaciones','Comentarios del paquete'],rows);
+ $('tbl').querySelectorAll('[data-package-comment]').forEach(area=>{area.oninput=()=>{const id=area.dataset.packageComment;const value=area.value;if(value.trim())packageComments[id]=value;else delete packageComments[id];savePackageComments()};area.onclick=e=>e.stopPropagation();area.onpointerdown=e=>e.stopPropagation()});
+ $('tbl').querySelectorAll('[data-real-progress]').forEach(input=>{input.onchange=()=>{const [id,ph]=input.dataset.realProgress.split('|'),v=input.value.trim()===''?null:Number(input.value);if(v!==null&&(!Number.isFinite(v)||v<0||v>100)){input.value='';input.setCustomValidity('Ingresa un porcentaje entre 0 y 100');input.reportValidity();return}input.setCustomValidity('');const p=DATA.packages.find(x=>x.id===id),f=p?.phases.find(x=>x.phase===ph);if(!f)return;f.progress=v===null?null:v/100;const k=id+'|'+ph;if(v===null)delete realProgress[k];else realProgress[k]=f.progress;saveRealProgress();render()};input.onclick=e=>e.stopPropagation();input.onpointerdown=e=>e.stopPropagation()});
+ renderHitTable()
+}
+function refEvents(){let v=$('ref').value, p=DATA.packages.find(p=>p.id===v), h=hmap[v];let events=p?p.phases.flatMap(f=>[['Inicio '+f.phase,f.start],['Entrega '+f.phase,f.delivery],['Cierre '+f.phase,f.close]]):h?[[h.name,h.date]]:[];$('refEvent').innerHTML='<option value="">Fecha manual</option>'+events.filter(e=>e[1]).map(([n,d],i)=>`<option value="${d}" data-i="${i}">${esc(n)} · ${fmt(d)}</option>`).join('');if(events.some(e=>e[1])){$('refEvent').selectedIndex=1;$('refDate').value=$('refEvent').value}compare()}
+function compare(){let d=$('refDate').value;let counts={};let rows=currentRows.map(({p,f})=>{let st,cl,percentage=null;if(!f.start||!f.delivery||!f.close){st='Sin planificación';cl='attn'}else if(!d){st='Sin fecha de referencia';cl=''}else if(d<f.start){st='Previo al inicio';cl=''}else if(d<f.delivery){st='Desarrollo previsto';cl='plan';percentage=(num(d)-num(f.start))/(num(f.delivery)-num(f.start))*100}else if(d<f.close){st='Revisión prevista';cl='rev';percentage=100}else{st='Cierre previsto alcanzado';cl='good';percentage=100}counts[st]=(counts[st]||0)+1;let prog=percentage===null?'—':`${Math.floor(percentage)}%<div class="mini"><b style="width:${Math.min(100,percentage)}%"></b></div>`;return `<tr><td class="d">${p.id}</td><td class="p">${esc(p.name)}</td><td><span class="phase ${f.phase}">${f.phase}</span></td><td>${label(st,cl)}</td><td>${prog}</td><td class="d">${fmt(f.start)}</td><td class="d">${fmt(f.delivery)}</td><td class="d">${fmt(f.close)}</td></tr>`});$('cmpSum').innerHTML=`<b>${d?'Programación al '+fmt(d):'Selecciona una fecha'}</b> · ${currentRows.length} fases visibles${Object.entries(counts).map(([k,v])=>` · ${v} ${esc(k.toLowerCase())}`).join('')}<br><small>El porcentaje representa el tiempo de desarrollo transcurrido según el plan, no un avance real.</small>`;table('cmpTbl',['ID','Paquete','Fase','Estado según programa','Tiempo de desarrollo','Inicio','Entrega','Cierre'],rows)}
+function render(){currentPackages=matches().filter(p=>selected.has(p.id));currentRows=currentPackages.flatMap(p=>phases(p).map(f=>({p,f})));renderEsp();renderChips();stats();timeline();tables();compare()}
+$('esp').onclick=()=>{const p=$('espPop');p.hidden=!p.hidden;$('esp').setAttribute('aria-expanded',!p.hidden)};document.addEventListener('click',e=>{if(!$('espBox').contains(e.target)){$('espPop').hidden=true;$('esp').setAttribute('aria-expanded','false')}});$('q').oninput=render;$('alert').onchange=render;$('phase').querySelectorAll('button').forEach(b=>b.onclick=()=>{phase=b.dataset.phase;setButtons('phase','phase',phase);render()});$('zoom').querySelectorAll('button').forEach(b=>b.onclick=()=>{zoom=b.dataset.zoom;setButtons('zoom','zoom',zoom);timeline()});$('all').onclick=()=>{matches().forEach(p=>selected.add(p.id));render()};$('none').onclick=()=>{matches().forEach(p=>selected.delete(p.id));render()};$('reset').onclick=()=>{selected=new Set(DATA.packages.map(p=>p.id));selEsp=new Set(esps);phase='all';$('q').value='';$('alert').value='all';setButtons('phase','phase',phase);collapsed.clear();render()};$('showH').onclick=()=>{showH=!showH;$('showH').textContent='Hitos externos '+(showH?'✓':'✕');$('showH').setAttribute('aria-pressed',showH);timeline()};$('collapse').onclick=()=>{let all=['hits',...esps.map((_,i)=>'esp'+i)];if(all.every(k=>collapsed.has(k)))collapsed.clear();else collapsed=new Set(all);$('collapse').textContent=collapsed.size?'Expandir grupos':'Contraer grupos';timeline()};$('measure').onclick=()=>{measuring=!measuring;$('measure').setAttribute('aria-pressed',measuring);$('measurebox').hidden=!measuring;nextMeasure='ma';timeline()};$('ma').onchange=timeline;$('mb').onchange=timeline;$('today').onclick=()=>{if(num(today)>=first&&num(today)<=last){pin=today;timeline();$('timeline').scrollLeft=Math.max(0,left(today)-120)}else{$('pinText').textContent='Hoy está fuera del periodo contractual'}};$('clearPin').onclick=()=>{pin=null;timeline()};$('resetPred').onclick=()=>{predecessorSelections={};scheduleEdits={};try{localStorage.removeItem(PRED_KEY);localStorage.removeItem(SCHEDULE_KEY)}catch(e){}recomputeSchedule();render()};$('toggleScheduleFields').onclick=()=>{const box=$('timeline'),hidden=box.classList.toggle('fields-hidden'),btn=$('toggleScheduleFields');btn.textContent=hidden?'＋ Mostrar predecesoras y plazos':'− Ocultar predecesoras y plazos';btn.setAttribute('aria-expanded',String(!hidden));btn.title=hidden?'Mostrar predecesoras y plazos':'Ocultar predecesoras y plazos'};syncRefOptions();$('addHit').onclick=addHit;$('ref').onchange=refEvents;$('refEvent').onchange=()=>{if($('refEvent').value)$('refDate').value=$('refEvent').value;compare()};$('refDate').onchange=()=>{$('refEvent').value='';compare()};$('refDate').value=today;$('refEvent').innerHTML='<option value="">Fecha manual</option>';
+
+
+function collectBackup(){
+ return {
+  app:'Cronograma MEP DIAR',
+  schemaVersion:1,
+  savedAt:new Date().toISOString(),
+  hits:DATA.hits,
+  predecessors:predecessorSelections,
+  schedule:scheduleEdits,
+  realProgress,
+  packageComments
+ };
+}
+function downloadBackup(){
+ const backup=collectBackup();
+ const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;
+ a.download='Respaldo_Cronograma_MEP_'+new Date().toISOString().slice(0,10)+'.json';
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+ return backup;
+}
+$('saveAll').onclick=()=>{
+ try{
+  const backup=downloadBackup();
+  try{
+   localStorage.setItem(HITS_KEY,JSON.stringify(DATA.hits));
+   localStorage.setItem(PRED_KEY,JSON.stringify(predecessorSelections));
+   localStorage.setItem(SCHEDULE_KEY,JSON.stringify(scheduleEdits));
+   localStorage.setItem(PROGRESS_KEY,JSON.stringify(realProgress));
+   localStorage.setItem(COMMENTS_KEY,JSON.stringify(packageComments));
+   localStorage.setItem('diar-mep-guardado-completo-v1',JSON.stringify(backup));
+  }catch(storageError){}
+  const status=$('saveStatus');
+  status.textContent='✓ Respaldo descargado. Guárdalo en tu carpeta del proyecto para recuperarlo después.';
+  status.style.color='#176B3A';
+  $('saveAll').textContent='✓ Respaldo generado';
+  setTimeout(()=>{$('saveAll').innerHTML='<span aria-hidden="true">▣</span> Guardar cambios'},2200);
+ }catch(err){
+  $('saveStatus').textContent='No se pudo generar el respaldo. Revisa los permisos de descarga del navegador.';
+  $('saveStatus').style.color='#A52626';
+ }
+};
+$('restoreAll').onclick=()=>$('backupFile').click();
+$('backupFile').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  const data=JSON.parse(await file.text());
+  if(data.app!=='Cronograma MEP DIAR'||data.schemaVersion!==1||
+     !Array.isArray(data.hits)||!data.predecessors||!data.schedule||
+     !data.realProgress||!data.packageComments)throw new Error('El archivo no corresponde a un respaldo válido del cronograma.');
+  DATA.hits=data.hits;
+  predecessorSelections=data.predecessors;
+  scheduleEdits=data.schedule;
+  realProgress=data.realProgress;
+  packageComments=data.packageComments;
+  localStorage.setItem(HITS_KEY,JSON.stringify(DATA.hits));
+  localStorage.setItem(PRED_KEY,JSON.stringify(predecessorSelections));
+  localStorage.setItem(SCHEDULE_KEY,JSON.stringify(scheduleEdits));
+  localStorage.setItem(PROGRESS_KEY,JSON.stringify(realProgress));
+  localStorage.setItem(COMMENTS_KEY,JSON.stringify(packageComments));
+  refreshHmap();recomputeSchedule();syncRefOptions();render();
+  $('saveStatus').textContent='✓ Respaldo cargado correctamente · '+file.name;
+  $('saveStatus').style.color='#176B3A';
+ }catch(err){
+  $('saveStatus').textContent='No se pudo cargar el respaldo: '+err.message;
+  $('saveStatus').style.color='#A52626';
+ }finally{e.target.value=''}
+};
+
+$('export').onclick=()=>{let rows=[['ID','Especialidad','Paquete','Fase','Inicio','Entrega','Cierre','Desarrollo (d)','Revisión (d)','Estado real','Avance programado (%)','Avance real (%)','Estado vs programa','Diferencia (pp)','Dependencias','Control de dependencia','Alerta plazo','Observaciones'],...currentRows.map(({p,f})=>{const x=progressInfo(p,f);return [p.id,p.esp,p.name,f.phase,f.start,f.delivery,f.close,f.duration,f.review,f.state,x.planned==null?'':Math.round(x.planned),f.progress==null?'':Math.round(f.progress*100),x.status,x.delta==null?'':Math.round(x.delta),dep(f),f.control,p.alert,p.note]})];let csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');let url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='Cronograma_MEP_filtrado.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+let drag=null,moved=false;const viewport=$('timeline');viewport.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button')||!e.target.closest('.track'))return;drag={x:e.clientX,y:e.clientY,sx:viewport.scrollLeft,sy:viewport.scrollTop};moved=false});window.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5){moved=true;viewport.classList.add('drag');viewport.scrollLeft=drag.sx-dx;viewport.scrollTop=drag.sy-dy}});window.addEventListener('pointerup',()=>{drag=null;viewport.classList.remove('drag')});viewport.addEventListener('click',e=>{if(moved){moved=false;return}const track=e.target.closest('.track');if(!track||e.target.closest('button'))return;let n=Math.round((e.clientX-track.getBoundingClientRect().left)/px)+first;if(n>=first&&n<=last)pick(iso(n))});recomputeSchedule();let timer;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(timeline,120)});render();
+</script></body></html>
